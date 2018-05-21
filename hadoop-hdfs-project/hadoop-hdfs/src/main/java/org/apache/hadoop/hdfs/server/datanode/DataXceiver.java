@@ -569,6 +569,7 @@ class DataXceiver extends Receiver implements Runnable {
       final boolean sendChecksum,
       final CachingStrategy cachingStrategy) throws IOException {
     previousOpClientName = clientName;
+    final String clClientName = cleaned(clientName);
     long read = 0;
     updateCurrentThreadName("Sending block " + block);
     OutputStream baseStream = getOutputStream();
@@ -626,16 +627,16 @@ class DataXceiver extends Receiver implements Runnable {
       } else {
         IOUtils.closeStream(out);
       }
-      datanode.metrics.incrBytesRead((int) read);
-      datanode.metrics.incrBlocksRead();
-      datanode.metrics.incrTotalReadTime(duration);
+      datanode.metrics.incrBytesRead(clClientName , (int) read);
+      datanode.metrics.incrBlocksRead(clClientName );
+      datanode.metrics.incrTotalReadTime(clClientName , duration);
     } catch ( SocketException ignored ) {
       if (LOG.isTraceEnabled()) {
         LOG.trace(dnR + ":Ignoring exception while serving " + block + " to " +
             remoteAddress, ignored);
       }
       // Its ok for remote side to close the connection anytime.
-      datanode.metrics.incrBlocksRead();
+      datanode.metrics.incrBlocksRead(clClientName);
       IOUtils.closeStream(out);
     } catch ( IOException ioe ) {
       /* What exactly should we do here?
@@ -654,6 +655,19 @@ class DataXceiver extends Receiver implements Runnable {
     //update metrics
     datanode.metrics.addReadBlockOp(elapsed());
     datanode.metrics.incrReadsFromClient(peer.isLocal(), read);
+  }
+
+  private String cleaned(String clientName) {
+    if (clientName == null) {
+      return "";
+    } else {
+      final String[] pricipleParts = clientName.split("\\$\\$")[0].split("::");
+      if (pricipleParts.length == 0) {
+        return clientName;
+      } else {
+        return pricipleParts[1].substring(0, pricipleParts[1].indexOf(" "));
+      }
+    }
   }
 
   @Override
@@ -911,8 +925,8 @@ class DataXceiver extends Receiver implements Runnable {
     }
 
     //update metrics
-    datanode.getMetrics().addWriteBlockOp(elapsed());
-    datanode.getMetrics().incrWritesFromClient(peer.isLocal(), size);
+    datanode.getMetrics().addWriteBlockOp(clientname, elapsed());
+    datanode.getMetrics().incrWritesFromClient(clientname, peer.isLocal(), size);
   }
 
   @Override

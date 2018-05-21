@@ -326,7 +326,7 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
     this.ugi = UserGroupInformation.getCurrentUser();
 
     this.namenodeUri = nameNodeUri;
-    this.clientName = "DFSClient_" + dfsClientConf.getTaskId() + "_" +
+    this.clientName = "principal_info::" + ugi.toString() + "$$usage_info::" + "DFSClient_" + dfsClientConf.getTaskId() + "_" +
         ThreadLocalRandom.current().nextInt()  + "_" +
         Thread.currentThread().getId();
     int numResponseToDrop = conf.getInt(

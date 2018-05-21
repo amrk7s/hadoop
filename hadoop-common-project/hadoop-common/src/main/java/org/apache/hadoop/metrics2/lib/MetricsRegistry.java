@@ -75,6 +75,25 @@ public class MetricsRegistry {
   }
 
   /**
+   * Get a metric by name
+   * @param name  of the metric
+   * @return the metric object
+   */
+  public synchronized <T extends MutableMetric> T get(String name, Class<T> concreteMetricKlass) {
+    return (T) metricsMap.get(name);
+  }
+
+  /**
+   * Check if metric exists
+   * @param name  of the metric
+   * @return the metric object
+   */
+  public synchronized boolean contains(String name) {
+    return metricsMap.containsKey(name);
+  }
+
+
+  /**
    * Get a tag by name
    * @param name  of the tag
    * @return the tag object
@@ -322,7 +341,7 @@ public class MetricsRegistry {
     return rollingAverages;
   }
 
-  synchronized void add(String name, MutableMetric metric) {
+  public synchronized void add(String name, MutableMetric metric) {
     checkMetricName(name);
     metricsMap.put(name, metric);
   }

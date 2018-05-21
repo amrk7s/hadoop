@@ -139,7 +139,7 @@ public class DataNodeMetrics {
   final MetricsRegistry registry = new MetricsRegistry("datanode");
   final String name;
   JvmMetrics jvmMetrics = null;
-  
+
   public DataNodeMetrics(String name, String sessionId, int[] intervals,
       final JvmMetrics jvmMetrics) {
     this.name = name;
@@ -450,5 +450,36 @@ public class DataNodeMetrics {
 
   public void incrBlocksDeletedInPendingIBR() {
     blocksDeletedInPendingIBR.incr();
+  }
+
+  public void incrBytesRead(String clientName, int read) {
+    incrBytesRead(read);
+    updateCounter("bytesRead." + clientName, read);
+  }
+
+  private void updateCounter(String metricName, long read) {
+    if (!registry.contains(metricName)) {
+      registry.newCounter(metricName, metricName, 0L);
+    }
+    registry.get(metricName, MutableCounterLong.class).incr(read);
+  }
+
+  public void incrBlocksRead(String clientName) {
+    incrBlocksRead();
+    updateCounter("blocksRead." + clientName, 1);
+  }
+
+  public void incrTotalReadTime(String clientName, long duration) {
+    incrTotalReadTime(duration);
+    updateCounter("totalReadTime." + clientName, duration);
+  }
+
+  public void addWriteBlockOp(String clientname, long elapsed) {
+    addWriteBlockOp(elapsed);
+  }
+
+  public void incrWritesFromClient(String clientname, boolean local, long size) {
+    incrWritesFromClient(local, size);
+    updateCounter("bytesWritten." + clientname, size);
   }
 }
